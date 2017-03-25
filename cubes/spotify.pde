@@ -1,5 +1,25 @@
 import http.requests.*; // Library for HTTP requests: https://github.com/runemadsen/HTTP-Requests-for-Processing
 
+String data;
+String newToken;
+
+// Keys to authorize the app through Spotify
+String authorizationKey;
+String refreshToken;
+
+String requestSong = "https://api.spotify.com/v1/audio-features/";
+JSONObject json;
+JSONObject jsonSong;
+
+// Variables we're interested in saving from the JSON
+float tempo;
+float energy;
+int musicKey;
+float loudness;
+int mode;
+float valence;
+float danceability;
+
 void setupSpotify() {
   String keys[] = loadStrings("data/KeyToken.txt");
   authorizationKey=keys[0];
@@ -27,7 +47,7 @@ void setupSpotify() {
 }
 
 void getSpotifyData(String songID) {
-
+  
   // POST request
   GetRequest getSongData = new GetRequest(requestSong + songID);
   getSongData.addHeader("Authorization", "Bearer " + newToken);
