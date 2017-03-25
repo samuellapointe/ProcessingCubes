@@ -346,8 +346,11 @@ class Mur {
     fill(displayColor, ((scoreGlobal-5)/1000)*(255+(z/25)));
     noStroke();
     
-    //Première bande, celle qui bouge en fonction de la force
-    //Matrice de transformation
+    // Première bande, celle qui bouge en fonction de la force
+    // Matrice de transformation
+    
+    // https://processing.org/reference/pushMatrix_.html
+    
     pushMatrix();
     
     //Déplacement
