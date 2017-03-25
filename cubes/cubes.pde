@@ -191,48 +191,51 @@ void draw()
   float dist = -25;
   
   // Multiplier for diagonal lines (the higher the value, the bigger the arrows at the edges become)
-  // We can use energy or loudness to increse/decrease it  
+  // We can use energy or loudness to increse/decrease it
+  
+  // The final value should be between 1 and 8 to be nice.
   float heightMult = spotifySongData.get("energy")*8.0;
   
   //Pour chaque bande
   for(int i = 1; i < fft.specSize(); i++)
   {
-    //Valeur de la bande de fréquence, on multiplie les bandes plus loins pour qu'elles soient plus visibles.
+    // The value of the frequency band, the farther bands are multiplied so that they are more visible.
     float bandValue = fft.getBand(i)*(1 + (i/50));
     
     //Selection de la couleur en fonction des forces des différents types de sons
-    stroke(100+scoreLow, 100+scoreMid, 100+scoreHi, 255-i);
-    strokeWeight(1 + (scoreGlobal/100));
+    stroke(100+scoreLow, 100+scoreMid, 100+scoreHi, 155-i);
+    strokeWeight(.8 + (scoreGlobal/100));
     
-    //ligne inferieure gauche
+    //diagonal line, left, lower
     line(0, height-(previousBandValue*heightMult), dist*(i-1), 0, height-(bandValue*heightMult), dist*i);
     line((previousBandValue*heightMult), height, dist*(i-1), (bandValue*heightMult), height, dist*i);
     line(0, height-(previousBandValue*heightMult), dist*(i-1), (bandValue*heightMult), height, dist*i);
     
-    //ligne superieure gauche
+    //diagonal line, left, higher
     line(0, (previousBandValue*heightMult), dist*(i-1), 0, (bandValue*heightMult), dist*i);
     line((previousBandValue*heightMult), 0, dist*(i-1), (bandValue*heightMult), 0, dist*i);
     line(0, (previousBandValue*heightMult), dist*(i-1), (bandValue*heightMult), 0, dist*i);
     
-    //ligne inferieure droite
+    //diagonal line, right, lower
     line(width, height-(previousBandValue*heightMult), dist*(i-1), width, height-(bandValue*heightMult), dist*i);
     line(width-(previousBandValue*heightMult), height, dist*(i-1), width-(bandValue*heightMult), height, dist*i);
     line(width, height-(previousBandValue*heightMult), dist*(i-1), width-(bandValue*heightMult), height, dist*i);
     
-    //ligne superieure droite
+    //diagonal line, left, higher
     line(width, (previousBandValue*heightMult), dist*(i-1), width, (bandValue*heightMult), dist*i);
     line(width-(previousBandValue*heightMult), 0, dist*(i-1), width-(bandValue*heightMult), 0, dist*i);
     line(width, (previousBandValue*heightMult), dist*(i-1), width-(bandValue*heightMult), 0, dist*i);
     
-    //Sauvegarder la valeur pour le prochain tour de boucle
     previousBandValue = bandValue;
   }
   
-  //Murs rectangles
+  //Walls rectangles
   for(int i = 0; i < nbMurs; i++)
   {
-    //On assigne à chaque mur une bande, et on lui envoie sa force.
+    // Each wall is assigned a band, and its amplitude is sent to it.
     float intensity = fft.getBand(i%((int)(fft.specSize()*specHi)));
+    println("intensity wall " + i +": " + intensity);
+    
     murs[i].display(scoreLow, scoreMid, scoreHi, intensity, scoreGlobal);
   }
 }
@@ -241,7 +244,9 @@ void draw()
 class Cube {
   //Position Z de "spawn" et position Z maximale
   float startingZ = -10000;
-  float maxZ = 1000;
+  
+  // how close the cubes come to the user
+  float maxZ = -1000; 
   
   //Valeurs de positions
   float x, y, z;
@@ -255,18 +260,20 @@ class Cube {
     y = random(0, height);
     z = random(startingZ, maxZ);
     
-    //Donner au cube une rotation aléatoire
+    //Random rotation
     rotX = random(0, 1);
     rotY = random(0, 1);
     rotZ = random(0, 1);
   }
-  //======= CUBE COLORS ==========
+  
+  //======= CUBE DISPLAY ==========
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
+    
     //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
     color displayColor = color(scoreLow*0.9, scoreMid*0.9, scoreHi*0.9, intensity*5);
     fill(displayColor, 255);
     
-    //Couleur lignes, elles disparaissent avec l'intensité individuelle du cube
+    // Color lines, they disappear with the individual intensity of the cube
     color strokeColor = color(255, 150-(20*intensity));
     stroke(strokeColor);
     strokeWeight(1 + (scoreGlobal/300));
