@@ -37,6 +37,19 @@ Mur[] murs;
  
 void setup()
 {
+  // Get refreshed token from Spotify
+  setupSpotify();
+  
+  // Get audio features based on song ID
+  
+  // Songs we have:
+  // Bob Marley - One Love: 2iSXgduBpKrwJuQcuybkxP
+  // Slipknot - People = Shit: 3nSK1M29hY2Jg2CjsJe98h
+  // Kazoo Kid: 0mXu9RFixtjgppxSvcYcYI
+  // Simon & Garfunkel - Sound of Silence: 2LkaNhCrNVmcYgXJeLVmsw 
+  
+  getSpotifyData("");
+  
   //Faire afficher en 3D sur tout l'écran
   fullScreen(P3D);
  
@@ -231,7 +244,7 @@ class Cube {
   
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
-    color displayColor = color(scoreLow*0.67, scoreMid*0.67, scoreHi*0.67, intensity*5);
+    color displayColor = color(scoreLow*0.9, scoreMid*0.9, scoreHi*0.9, intensity*5);
     fill(displayColor, 255);
     
     //Couleur lignes, elles disparaissent avec l'intensité individuelle du cube
