@@ -53,10 +53,10 @@ void setup()
   spotifySongData = new FloatDict();
   
   // Get several properties: tempo, energy, musicKey, loudness, mode, valence
-  spotifySongData = getSpotifyData("2iSXgduBpKrwJuQcuybkxP");
+  spotifySongData = getSpotifyData("2LkaNhCrNVmcYgXJeLVmsw");
   
   // Example on how to get specific data from the dictionary
-  // spotifyData.get("tempo"));
+  // spotifySongData.get("tempo"));
   
   //Faire afficher en 3D sur tout l'écran
   fullScreen(P3D);
@@ -65,14 +65,20 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("bob.mp3");
+  song = minim.loadFile("sound_silence.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
   
   //Un cube par bande de fréquence
   // Added the multiplier at the end, to modify the number of cubes
-  nbCubes = (int)(fft.specSize()*specHi*0.4);
+  println("tempo: " + spotifySongData.get("tempo"));
+  println("energy: " + spotifySongData.get("energy"));
+  println("valence: " + spotifySongData.get("valence"));
+  println("loudness: " + spotifySongData.get("loudness"));
+  println("mode: " + spotifySongData.get("mode"));
+  
+  nbCubes = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
   cubes = new Cube[nbCubes];
   
   //Autant de murs qu'on veux
