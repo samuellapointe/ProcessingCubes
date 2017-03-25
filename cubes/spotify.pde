@@ -46,7 +46,9 @@ void setupSpotify() {
   }
 }
 
-void getSpotifyData(String songID) {
+FloatDict getSpotifyData(String songID) {
+  
+  FloatDict songData = new FloatDict();
   
   // POST request
   GetRequest getSongData = new GetRequest(requestSong + songID);
@@ -59,12 +61,14 @@ void getSpotifyData(String songID) {
   if (jsonSong == null) {
     println("JSONObject could not be parsed");
   } else {
-    tempo = jsonSong.getFloat("tempo");
-    energy = jsonSong.getFloat("energy");
-    musicKey = jsonSong.getInt("key");
-    loudness = jsonSong.getFloat("loudness");
-    mode = jsonSong.getInt("mode");
-    valence = jsonSong.getFloat("valence");
-    danceability = jsonSong.getFloat("danceability");
+    songData.set("tempo", jsonSong.getFloat("tempo"));
+    songData.set("energy", jsonSong.getFloat("energy"));
+    songData.set("musicKey", jsonSong.getInt("key"));
+    songData.set("loudness", jsonSong.getFloat("loudness"));
+    songData.set("mode", jsonSong.getInt("mode"));
+    songData.set("valence", jsonSong.getFloat("valence"));
+    songData.set("danceability", jsonSong.getFloat("danceability"));
   }
+  
+  return songData;
 }

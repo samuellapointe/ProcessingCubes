@@ -34,6 +34,8 @@ Cube[] cubes;
 //Lignes qui apparaissent sur les cotés
 int nbMurs = 500;
 Mur[] murs;
+
+FloatDict spotifyData;
  
 void setup()
 {
@@ -48,7 +50,10 @@ void setup()
   // Kazoo Kid: 0mXu9RFixtjgppxSvcYcYI
   // Simon & Garfunkel - Sound of Silence: 2LkaNhCrNVmcYgXJeLVmsw 
   
-  getSpotifyData("2iSXgduBpKrwJuQcuybkxP");
+  spotifyData = new FloatDict();
+  spotifyData = getSpotifyData("2iSXgduBpKrwJuQcuybkxP");
+  
+  println(spotifyData);
   
   //Faire afficher en 3D sur tout l'écran
   fullScreen(P3D);
