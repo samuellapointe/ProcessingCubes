@@ -65,18 +65,23 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("sound_silence.mp3");
+  song = minim.loadFile("slipknot.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
+  println("song buffersize: " + song.bufferSize());
+  println("song samplerate: " + song.sampleRate());//Hz
+  println("song samplerate: " + song.sampleRate());//Hz
   
   //Un cube par bande de fréquence
   // Added the multiplier at the end, to modify the number of cubes
-  println("tempo: " + spotifySongData.get("tempo"));
-  println("energy: " + spotifySongData.get("energy"));
-  println("valence: " + spotifySongData.get("valence"));
-  println("loudness: " + spotifySongData.get("loudness"));
-  println("mode: " + spotifySongData.get("mode"));
+  //1 = happy/energetic
+  //0 = sad
+  println("tempo: " + spotifySongData.get("tempo")); //50-200
+  println("energy: " + spotifySongData.get("energy")); //0-1
+  println("valence: " + spotifySongData.get("valence"));//0-1
+  println("loudness: " + spotifySongData.get("loudness"));//-60 - 0 (dB)
+  println("mode: " + spotifySongData.get("mode"));//0 or 1
   
   nbCubes = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
   cubes = new Cube[nbCubes];
@@ -110,7 +115,7 @@ void setup()
   for (int i = 3; i < nbMurs; i+=4) {
    murs[i] = new Mur(width/2, 0, width, 10); 
   }
-  
+ 
   //Fond noir
   background(0);
   
@@ -166,15 +171,19 @@ void draw()
   //Volume pour toutes les fréquences à ce moment, avec les sons plus haut plus importants.
   //Cela permet à l'animation d'aller plus vite pour les sons plus aigus, qu'on remarque plus
   float scoreGlobal = 0.66*scoreLow + 0.8*scoreMid + 1*scoreHi;
-  
-  //Couleur subtile de background
+
+  //Canvas background color
   background(scoreLow/100, scoreMid/100, scoreHi/100);
-   
+   println("score Low: " + scoreLow);
+   println("score Mid: " + scoreMid);
+   println("score Hi: " + scoreHi);
+   println("\n");
   //Cube pour chaque bande de fréquence
   for(int i = 0; i < nbCubes; i++)
   {
     //Valeur de la bande de fréquence
-    float bandValue = fft.getBand(i);
+    float bandValue = fft.getBand(i);//amplitude of certain band of frequency
+    println("band value: " + bandValue); //0-15
     
     //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
     //L'opacité est déterminée par le volume de la bande et le volume global.
@@ -256,7 +265,7 @@ class Cube {
     rotY = random(0, 1);
     rotZ = random(0, 1);
   }
-  
+  //======= CUBE COLORS ==========
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
     color displayColor = color(scoreLow*0.9, scoreMid*0.9, scoreHi*0.9, intensity*5);
@@ -325,7 +334,7 @@ class Mur {
     this.sizeY = sizeY;
   }
   
-  //Fonction d'affichage
+  //======= WALL COLORS ==========
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     //Couleur déterminée par les sons bas, moyens et élevé
     //Opacité déterminé par le volume global
