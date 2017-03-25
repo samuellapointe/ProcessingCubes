@@ -32,10 +32,10 @@ int nbCubes;
 Cube[] cubes;
 
 //Lignes qui apparaissent sur les cotés
-int nbMurs = 500;
+int nbMurs = 1000;
 Mur[] murs;
 
-FloatDict spotifyData;
+FloatDict spotifySongData;
  
 void setup()
 {
@@ -50,10 +50,13 @@ void setup()
   // Kazoo Kid: 0mXu9RFixtjgppxSvcYcYI
   // Simon & Garfunkel - Sound of Silence: 2LkaNhCrNVmcYgXJeLVmsw 
   
-  spotifyData = new FloatDict();
-  spotifyData = getSpotifyData("2iSXgduBpKrwJuQcuybkxP");
+  spotifySongData = new FloatDict();
   
-  println(spotifyData);
+  // Get several properties: tempo, energy, musicKey, loudness, mode, valence
+  spotifySongData = getSpotifyData("2iSXgduBpKrwJuQcuybkxP");
+  
+  // Example on how to get specific data from the dictionary
+  // spotifyData.get("tempo"));
   
   //Faire afficher en 3D sur tout l'écran
   fullScreen(P3D);
@@ -61,14 +64,15 @@ void setup()
   //Charger la librairie minim
   minim = new Minim(this);
  
-  //Charger la chanson
-  song = minim.loadFile("song.mp3");
+  //Load the song (found in data folder) 
+  song = minim.loadFile("bob.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
   
   //Un cube par bande de fréquence
-  nbCubes = (int)(fft.specSize()*specHi);
+  // Added the multiplier at the end, to modify the number of cubes
+  nbCubes = (int)(fft.specSize()*specHi*0.4);
   cubes = new Cube[nbCubes];
   
   //Autant de murs qu'on veux
