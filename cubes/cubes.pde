@@ -65,13 +65,10 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("slipknot.mp3");
+  song = minim.loadFile("bob.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
-  println("song buffersize: " + song.bufferSize());
-  println("song samplerate: " + song.sampleRate());//Hz
-  println("song samplerate: " + song.sampleRate());//Hz
   
   //Un cube par bande de fréquence
   // Added the multiplier at the end, to modify the number of cubes
@@ -174,16 +171,13 @@ void draw()
 
   //Canvas background color
   background(scoreLow/100, scoreMid/100, scoreHi/100);
-   println("score Low: " + scoreLow);
-   println("score Mid: " + scoreMid);
-   println("score Hi: " + scoreHi);
-   println("\n");
+  println("\n");
   //Cube pour chaque bande de fréquence
   for(int i = 0; i < nbCubes; i++)
   {
     //Valeur de la bande de fréquence
     float bandValue = fft.getBand(i);//amplitude of certain band of frequency
-    println("band value: " + bandValue); //0-15
+    //println("band value: " + bandValue); //0-15
     
     //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
     //L'opacité est déterminée par le volume de la bande et le volume global.
@@ -196,8 +190,9 @@ void draw()
   //Distance entre chaque point de ligne, négatif car sur la dimension z
   float dist = -25;
   
-  //Multiplier la hauteur par cette constante
-  float heightMult = 2;
+  // Multiplier for diagonal lines (the higher the value, the bigger the arrows at the edges become)
+  // We can use energy or loudness to increse/decrease it  
+  float heightMult = spotifySongData.get("energy")*8.0;
   
   //Pour chaque bande
   for(int i = 1; i < fft.specSize(); i++)
