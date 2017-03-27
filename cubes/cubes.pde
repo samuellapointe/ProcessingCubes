@@ -31,6 +31,10 @@ float scoreDecreaseRate = 25;
 int nbCubes;
 Cube[] cubes;
 
+// Triangles
+int nbTriangles;
+Triangle[] triangles;
+
 //Lignes qui apparaissent sur les cotés
 int nbMurs = 1000;
 Mur[] murs;
@@ -80,7 +84,11 @@ void setup()
   println("loudness: " + spotifySongData.get("loudness"));//-60 - 0 (dB)
   println("mode: " + spotifySongData.get("mode"));//0 or 1
   
-  nbCubes = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
+  nbCubes = (int)(fft.specSize()*specLow*(spotifySongData.get("energy")));
+  cubes = new Cube[nbCubes];
+  
+  // Take only frequencies between med and hi for triangles
+  nbTriangles = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
   cubes = new Cube[nbCubes];
   
   //Autant de murs qu'on veux
@@ -327,7 +335,7 @@ class Triangle {
   Triangle() {
     //Faire apparaitre le cube à un endroit aléatoire
     x = random(0, width);
-    y = random(0, height);
+    y = random(0, height-height/3);
     z = random(startingZ, maxZ);
     
     //Random rotation
