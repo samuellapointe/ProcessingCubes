@@ -53,7 +53,7 @@ void setup()
   spotifySongData = new FloatDict();
   
   // Get several properties: tempo, energy, musicKey, loudness, mode, valence
-  spotifySongData = getSpotifyData("2LkaNhCrNVmcYgXJeLVmsw");
+  spotifySongData = getSpotifyData("2iSXgduBpKrwJuQcuybkxP");
   
   // Example on how to get specific data from the dictionary
   // spotifySongData.get("tempo"));
@@ -65,7 +65,7 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("bob.mp3");
+  song = minim.loadFile("song.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
@@ -234,7 +234,6 @@ void draw()
   {
     // Each wall is assigned a band, and its amplitude is sent to it.
     float intensity = fft.getBand(i%((int)(fft.specSize()*specHi)));
-    println("intensity wall " + i +": " + intensity);
     
     murs[i].display(scoreLow, scoreMid, scoreHi, intensity, scoreGlobal);
   }
@@ -246,7 +245,7 @@ class Cube {
   float startingZ = -10000;
   
   // how close the cubes come to the user
-  float maxZ = -1000; 
+  float maxZ = 1000; 
   
   //Valeurs de positions
   float x, y, z;
@@ -257,7 +256,7 @@ class Cube {
   Cube() {
     //Faire apparaitre le cube à un endroit aléatoire
     x = random(0, width);
-    y = random(0, height);
+    y = random(height-height/3, height); // put the cubes in the bottom third of the screen 
     z = random(startingZ, maxZ);
     
     //Random rotation
@@ -304,6 +303,93 @@ class Cube {
     z+= (1+(intensity/5)+(pow((scoreGlobal/150), 2)));
     
     //Replacer la boite à l'arrière lorsqu'elle n'est plus visible
+    if (z >= maxZ) {
+      x = random(0, width);
+      y = random(0, height);
+      z = startingZ;
+    }
+  }
+}
+
+class Triangle {
+  //Position Z de "spawn" et position Z maximale
+  float startingZ = -10000;
+  
+  // how close the cubes come to the user
+  float maxZ = 1000; 
+  
+  //Valeurs de positions
+  float x, y, z;
+  float rotX, rotY, rotZ;
+  float sumRotX, sumRotY, sumRotZ;
+  
+  //Constructeur
+  Triangle() {
+    //Faire apparaitre le cube à un endroit aléatoire
+    x = random(0, width);
+    y = random(0, height);
+    z = random(startingZ, maxZ);
+    
+    //Random rotation
+    rotX = random(0, 1);
+    rotY = random(0, 1);
+    rotZ = random(0, 1);
+  } 
+  
+  //======= TRIANGLE DISPLAY ==========
+  void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
+    
+    //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
+    color displayColor = color(scoreLow*0.9, scoreMid*0.9, scoreHi*0.9, intensity*5);
+    fill(displayColor, 255);
+    
+    // Color lines, they disappear with the individual intensity of the cube
+    color strokeColor = color(255, 150-(20*intensity));
+    stroke(strokeColor);
+    strokeWeight(1 + (scoreGlobal/300));
+    
+    //Création d'une matrice de transformation pour effectuer des rotations, agrandissements
+    pushMatrix();
+    
+    //Déplacement
+    translate(x, y, z);
+    
+    //Calcul de la rotation en fonction de l'intensité pour le cube
+    sumRotX += intensity*(rotX/1000);
+    sumRotY += intensity*(rotY/1000);
+    sumRotZ += intensity*(rotZ/1000);
+    
+    //Application de la rotation
+    rotateX(sumRotX);
+    rotateY(sumRotY);
+    rotateZ(sumRotZ);
+    
+    // creation of pyramid
+    beginShape();
+    vertex(-100, -100, -100);
+    vertex( 100, -100, -100);
+    vertex(   0,    0,  100);
+    
+    vertex( 100, -100, -100);
+    vertex( 100,  100, -100);
+    vertex(   0,    0,  100);
+    
+    vertex( 100, 100, -100);
+    vertex(-100, 100, -100);
+    vertex(   0,   0,  100);
+    
+    vertex(-100,  100, -100);
+    vertex(-100, -100, -100);
+    vertex(   0,    0,  100);
+    endShape();
+    
+    //Application de la matrice
+    popMatrix();
+    
+    //Déplacement Z
+    z+= (1+(intensity/5)+(pow((scoreGlobal/150), 2)));
+    
+    // Replacer la boite à l'arrière lorsqu'elle n'est plus visible
     if (z >= maxZ) {
       x = random(0, width);
       y = random(0, height);
