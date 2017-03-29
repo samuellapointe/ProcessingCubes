@@ -9,4 +9,7 @@ Some vars to tweak with:
  
  I don't intend to add anything else to this program, this is only for sharing (and forking) purposes.
 
-Check out this fork: https://github.com/alessandrocapra/ProcessingCubes
+Check out these forks: 
+
+* https://github.com/alessandrocapra/ProcessingCubes
+* https://github.com/tlangerak/ProcessingCubes
