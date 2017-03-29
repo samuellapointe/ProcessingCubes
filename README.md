@@ -8,3 +8,5 @@ Some vars to tweak with:
  - nbMurs: The number of lines to show on the walls.
  
  I don't intend to add anything else to this program, this is only for sharing (and forking) purposes.
+
+Check out this fork: https://github.com/alessandrocapra/ProcessingCubes
