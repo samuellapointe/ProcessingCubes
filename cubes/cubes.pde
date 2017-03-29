@@ -31,6 +31,10 @@ float scoreDecreaseRate = 25;
 int nbCubes;
 Cube[] cubes;
 
+// Spheres for mid frequencies
+int nbSpheres;
+Sphere[] spheres;
+
 // Triangles
 int nbTriangles;
 Triangle[] triangles;
@@ -84,12 +88,21 @@ void setup()
   println("loudness: " + spotifySongData.get("loudness"));//-60 - 0 (dB)
   println("mode: " + spotifySongData.get("mode"));//0 or 1
   
-  nbCubes = (int)(fft.specSize()*specLow*(spotifySongData.get("energy")));
+  // nbCubes = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
+  nbCubes = (int)(fft.specSize()*specHi);
   cubes = new Cube[nbCubes];
   
+  println("nbTotal: " + nbCubes);
+
   // Take only frequencies between med and hi for triangles
-  nbTriangles = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
-  cubes = new Cube[nbCubes];
+  nbSpheres = (int)(fft.specSize()*specHi) - nbCubes;
+  spheres = new Triangle[nbTriangles];
+  
+  // Take only frequencies between med and hi for triangles
+  nbTriangles = (int)(fft.specSize()*specHi*(spotifySongData.get("energy"))) - nbCubes;
+  triangles = new Triangle[nbTriangles];
+  
+  println("nbTriangles: " + nbTriangles);
   
   //Autant de murs qu'on veux
   murs = new Mur[nbMurs];
@@ -390,6 +403,77 @@ class Triangle {
     vertex(-100, -100, -100);
     vertex(   0,    0,  100);
     endShape();
+    
+    //Application de la matrice
+    popMatrix();
+    
+    //Déplacement Z
+    z+= (1+(intensity/5)+(pow((scoreGlobal/150), 2)));
+    
+    // Replacer la boite à l'arrière lorsqu'elle n'est plus visible
+    if (z >= maxZ) {
+      x = random(0, width);
+      y = random(0, height);
+      z = startingZ;
+    }
+  }
+}
+
+
+class Sphere {
+  //Position Z de "spawn" et position Z maximale
+  float startingZ = -10000;
+  
+  // how close the cubes come to the user
+  float maxZ = 1000; 
+  
+  //Valeurs de positions
+  float x, y, z;
+  float rotX, rotY, rotZ;
+  float sumRotX, sumRotY, sumRotZ;
+  
+  //Constructeur
+  Sphere() {
+    //Faire apparaitre le cube à un endroit aléatoire
+    x = random(0, width);
+    y = random(0, height-height/3);
+    z = random(startingZ, maxZ);
+    
+    //Random rotation
+    rotX = random(0, 1);
+    rotY = random(0, 1);
+    rotZ = random(0, 1);
+  } 
+  
+  //======= TRIANGLE DISPLAY ==========
+  void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
+    
+    //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
+    color displayColor = color(scoreLow*0.9, scoreMid*0.9, scoreHi*0.9, intensity*5);
+    fill(displayColor, 255);
+    
+    // Color lines, they disappear with the individual intensity of the cube
+    color strokeColor = color(255, 150-(20*intensity));
+    stroke(strokeColor);
+    strokeWeight(1 + (scoreGlobal/300));
+    
+    //Création d'une matrice de transformation pour effectuer des rotations, agrandissements
+    pushMatrix();
+    
+    //Déplacement
+    translate(x, y, z);
+    
+    //Calcul de la rotation en fonction de l'intensité pour le cube
+    sumRotX += intensity*(rotX/1000);
+    sumRotY += intensity*(rotY/1000);
+    sumRotZ += intensity*(rotZ/1000);
+    
+    //Application de la rotation
+    rotateX(sumRotX);
+    rotateY(sumRotY);
+    rotateZ(sumRotZ);
+    
+    sphere(100+(intensity/2));
     
     //Application de la matrice
     popMatrix();
