@@ -73,7 +73,7 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("slipknot.mp3");
+  song = minim.loadFile("song.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
@@ -254,7 +254,7 @@ void draw()
   
   // The final value should be between 1 and 8 to be nice.
   //float heightMult = spotifySongData.get("energy")*8.0;
-  float heightMult = 2;
+  float heightMult = 5;
   
   //Pour chaque bande
   for(int i = 1; i < fft.specSize(); i++)
@@ -267,9 +267,11 @@ void draw()
     strokeWeight(.8 + (scoreGlobal/100));
     
     //diagonal line, left, lower
-    line(0, height-(previousBandValue*heightMult), dist*(i-1), 0, height-(bandValue*heightMult), dist*i);
-    line((previousBandValue*heightMult), height, dist*(i-1), (bandValue*heightMult), height, dist*i);
-    line(0, height-(previousBandValue*heightMult), dist*(i-1), (bandValue*heightMult), height, dist*i);
+    
+    //diagonal line, left, lower
+    line(0, height-(previousBandValue*heightMult), dist*(i-1), 0, height-(bandValue*heightMult), dist*i); // upper
+    line((previousBandValue*heightMult), height, dist*(i-1), (bandValue*heightMult), height, dist*i); // lower
+    line(0, height-(previousBandValue*heightMult), dist*(i-1), (bandValue*heightMult), height, dist*i); // central
     
     //diagonal line, left, higher
     line(0, (previousBandValue*heightMult), dist*(i-1), 0, (bandValue*heightMult), dist*i);
@@ -303,7 +305,7 @@ void draw()
 //Classe pour afficher les lignes sur les cotés
 class Mur {
   //Position minimale et maximale Z
-  float startingZ = -10000;
+  float startingZ = -6000;
   float maxZ = 50;
   
   //Valeurs de position
@@ -346,7 +348,7 @@ class Mur {
     
     //Agrandissement
     if (intensity > 100) intensity = 100;
-    scale(sizeX*(intensity/100), sizeY*(intensity/100), 20);
+    scale(sizeX*(intensity/100), sizeY*(intensity/100), 5);
     
     //Création de la "boite"
     box(1);
