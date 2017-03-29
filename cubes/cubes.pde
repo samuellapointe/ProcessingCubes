@@ -73,7 +73,7 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("song.mp3");
+  song = minim.loadFile("bob.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
@@ -89,28 +89,41 @@ void setup()
   println("mode: " + spotifySongData.get("mode"));//0 or 1
   
   // nbCubes = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
-  nbCubes = (int)(fft.specSize()*specHi);
-  cubes = new Cube[nbCubes];
-  
-  println("nbTotal: " + nbCubes);
 
-  // Take only frequencies between med and hi for triangles
-  nbSpheres = (int)(fft.specSize()*specHi) - nbCubes;
-  spheres = new Triangle[nbTriangles];
+  // use it to diminish the number of elements displayed on screen
+  float lessElements = 0.5;
+
+  // Take only low frequencies for cubes (0-3%)
+  nbCubes = (int)(fft.specSize() * specLow * lessElements);
+  cubes = new Cube[nbCubes];
+  println("nbCubes: " + nbCubes);
+
+  // Take only medium frequencies for spheres (3%-12.5%)
+  nbSpheres = (int)((fft.specSize()*specMid - nbCubes) * lessElements);
+  spheres = new Sphere[nbSpheres];
+  println("nbSpheres: " + nbSpheres);
   
-  // Take only frequencies between med and hi for triangles
-  nbTriangles = (int)(fft.specSize()*specHi*(spotifySongData.get("energy"))) - nbCubes;
+  // Take only hi frequencies for triangles
+  nbTriangles = (int)((fft.specSize()*specHi - nbSpheres - nbCubes) * lessElements);
   triangles = new Triangle[nbTriangles];
-  
   println("nbTriangles: " + nbTriangles);
   
   //Autant de murs qu'on veux
   murs = new Mur[nbMurs];
 
-  //Créer tous les objets
-  //Créer les objets cubes
+  //Create the Cube objects
   for (int i = 0; i < nbCubes; i++) {
    cubes[i] = new Cube(); 
+  }
+  
+  //Create the Sphere objects
+  for (int i = 0; i < nbSpheres; i++) {
+   spheres[i] = new Sphere(); 
+  }
+  
+  //Create the Triangle objects
+  for (int i = 0; i < nbTriangles; i++) {
+   triangles[i] = new Triangle(); 
   }
   
   //Créer les objets murs
@@ -193,16 +206,41 @@ void draw()
   //Canvas background color
   background(scoreLow/100, scoreMid/100, scoreHi/100);
   println("\n");
-  //Cube pour chaque bande de fréquence
+  
+  // Cubes for the low frequencies
   for(int i = 0; i < nbCubes; i++)
   {
-    //Valeur de la bande de fréquence
+    // Band of frequence value
     float bandValue = fft.getBand(i);//amplitude of certain band of frequency
     //println("band value: " + bandValue); //0-15
     
     //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
     //L'opacité est déterminée par le volume de la bande et le volume global.
     cubes[i].display(scoreLow, scoreMid, scoreHi, bandValue, scoreGlobal);
+  }
+  
+  // Spheres for the mid frequencies
+  for(int i = 0; i < nbSpheres; i++)
+  {
+    // Band of frequence value
+    float bandValue = fft.getBand(i);//amplitude of certain band of frequency
+    //println("band value: " + bandValue); //0-15
+    
+    //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
+    //L'opacité est déterminée par le volume de la bande et le volume global.
+    spheres[i].display(scoreLow, scoreMid, scoreHi, bandValue, scoreGlobal);
+  }
+  
+  // Triangles for the hi frequencies
+  for(int i = 0; i < nbTriangles; i++)
+  {
+    // Band of frequence value
+    float bandValue = fft.getBand(i);//amplitude of certain band of frequency
+    //println("band value: " + bandValue); //0-15
+    
+    //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
+    //L'opacité est déterminée par le volume de la bande et le volume global.
+    triangles[i].display(scoreLow, scoreMid, scoreHi, bandValue, scoreGlobal);
   }
   
   //Murs lignes, ici il faut garder la valeur de la bande précédent et la suivante pour les connecter ensemble
@@ -277,7 +315,8 @@ class Cube {
   Cube() {
     //Faire apparaitre le cube à un endroit aléatoire
     x = random(0, width);
-    y = random(height-height/3, height); // put the cubes in the bottom third of the screen 
+    //y = random(height-height/3, height); // put the cubes in the bottom third of the screen
+    y = height*0.75;
     z = random(startingZ, maxZ);
     
     //Random rotation
@@ -326,7 +365,7 @@ class Cube {
     //Replacer la boite à l'arrière lorsqu'elle n'est plus visible
     if (z >= maxZ) {
       x = random(0, width);
-      y = random(0, height);
+      y = height*0.75;
       z = startingZ;
     }
   }
@@ -348,7 +387,8 @@ class Triangle {
   Triangle() {
     //Faire apparaitre le cube à un endroit aléatoire
     x = random(0, width);
-    y = random(0, height-height/3);
+    //y = random(0, height);
+    y = height * 0.25;
     z = random(startingZ, maxZ);
     
     //Random rotation
@@ -362,7 +402,6 @@ class Triangle {
     
     //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
     color displayColor = color(scoreLow*0.9, scoreMid*0.9, scoreHi*0.9, intensity*5);
-    fill(displayColor, 255);
     
     // Color lines, they disappear with the individual intensity of the cube
     color strokeColor = color(255, 150-(20*intensity));
@@ -404,6 +443,8 @@ class Triangle {
     vertex(   0,    0,  100);
     endShape();
     
+    fill(displayColor, 255);
+    
     //Application de la matrice
     popMatrix();
     
@@ -413,7 +454,7 @@ class Triangle {
     // Replacer la boite à l'arrière lorsqu'elle n'est plus visible
     if (z >= maxZ) {
       x = random(0, width);
-      y = random(0, height);
+      y = height * 0.25;
       z = startingZ;
     }
   }
@@ -436,7 +477,8 @@ class Sphere {
   Sphere() {
     //Faire apparaitre le cube à un endroit aléatoire
     x = random(0, width);
-    y = random(0, height-height/3);
+    //y = random(0 + height/3, height-height/3);
+    y = height*0.5;
     z = random(startingZ, maxZ);
     
     //Random rotation
@@ -445,7 +487,7 @@ class Sphere {
     rotZ = random(0, 1);
   } 
   
-  //======= TRIANGLE DISPLAY ==========
+  //======= Sphere ==========
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     
     //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
@@ -473,7 +515,7 @@ class Sphere {
     rotateY(sumRotY);
     rotateZ(sumRotZ);
     
-    sphere(100+(intensity/2));
+    sphere(50+(intensity/2));
     
     //Application de la matrice
     popMatrix();
@@ -484,7 +526,7 @@ class Sphere {
     // Replacer la boite à l'arrière lorsqu'elle n'est plus visible
     if (z >= maxZ) {
       x = random(0, width);
-      y = random(0, height);
+      y = height*0.5;
       z = startingZ;
     }
   }
