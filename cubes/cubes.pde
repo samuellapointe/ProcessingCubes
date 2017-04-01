@@ -264,7 +264,7 @@ void draw()
   for(int i = 1; i < fft.specSize(); i++)
   {
     // The value of the frequency band, the farther bands are multiplied so that they are more visible.
-    float bandValue = fft.getBand(i)*(1 + (i/10));
+    float bandValue = fft.getBand(i)*(1 + (i/50));
     
     //Selection de la couleur en fonction des forces des différents types de sons
     stroke(100+scoreLow, 100+scoreMid, 100+scoreHi, 155-i);
