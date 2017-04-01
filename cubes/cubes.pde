@@ -31,35 +31,114 @@ float scoreDecreaseRate = 25;
 int nbCubes;
 Cube[] cubes;
 
+// Spheres for mid frequencies
+int nbSpheres;
+Sphere[] spheres;
+
+// Triangles
+int nbTriangles;
+Triangle[] triangles;
+
 //Lignes qui apparaissent sur les cotés
-int nbMurs = 500;
+int nbMurs = 2000;
 Mur[] murs;
+
+FloatDict spotifySongData;
  
+color getEmotionColor(){
+  /* 
+  
+  We are using HSB color scheme to differentiate between warm (happy, energetic) and cold (sad, calm)
+  H tells the warmth of the color, lowering S makes it pastel, "relaxed", "calm". By lowering B it becomes darker, "sad"?
+ 
+  Warm colors: hottest is red (HSB - 0,100,100)
+  values in H between 320 - 65
+  
+  Cold colors: coldest is blue (255,100,100)
+  cold colors are between 75 - 310
+  
+  */
+  return 1;
+}
 void setup()
 {
+  // Get refreshed token from Spotify
+  setupSpotify();
+  
+  // Get audio features based on song ID
+  
+  // Songs we have:
+  // Bob Marley - One Love: 2iSXgduBpKrwJuQcuybkxP
+  // Slipknot - People = Shit: 3nSK1M29hY2Jg2CjsJe98h
+  // Kazoo Kid: 0mXu9RFixtjgppxSvcYcYI
+  // Simon & Garfunkel - Sound of Silence: 2LkaNhCrNVmcYgXJeLVmsw 
+  
+  spotifySongData = new FloatDict();
+  
+  // Get several properties: tempo, energy, musicKey, loudness, mode, valence
+  spotifySongData = getSpotifyData("3nSK1M29hY2Jg2CjsJe98h");
+  
+  // Example on how to get specific data from the dictionary
+  // spotifySongData.get("tempo"));
+  
   //Faire afficher en 3D sur tout l'écran
   fullScreen(P3D);
  
   //Charger la librairie minim
   minim = new Minim(this);
  
-  //Charger la chanson
-  song = minim.loadFile("song.mp3");
+  //Load the song (found in data folder) 
+  song = minim.loadFile("slipknot.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
   
   //Un cube par bande de fréquence
-  nbCubes = (int)(fft.specSize()*specHi);
+  // Added the multiplier at the end, to modify the number of cubes
+  //1 = happy/energetic
+  //0 = sad
+  println("tempo: " + spotifySongData.get("tempo")); //50-200
+  println("energy: " + spotifySongData.get("energy")); //0-1
+  println("valence: " + spotifySongData.get("valence"));//0-1
+  println("loudness: " + spotifySongData.get("loudness"));//-60 - 0 (dB)
+  println("mode: " + spotifySongData.get("mode"));//0 or 1
+  
+  // nbCubes = (int)(fft.specSize()*specHi*(spotifySongData.get("energy")));
+
+  // use it to diminish the number of elements displayed on screen
+  float lessElements = 0.5;
+
+  // Take only low frequencies for cubes (0-3%)
+  nbCubes = (int)(fft.specSize() * specLow * lessElements);
   cubes = new Cube[nbCubes];
+  println("nbCubes: " + nbCubes);
+
+  // Take only medium frequencies for spheres (3%-12.5%)
+  nbSpheres = (int)((fft.specSize()*specMid - nbCubes) * lessElements);
+  spheres = new Sphere[nbSpheres];
+  println("nbSpheres: " + nbSpheres);
+  
+  // Take only hi frequencies for triangles
+  nbTriangles = (int)((fft.specSize()*specHi - nbSpheres - nbCubes) * lessElements);
+  triangles = new Triangle[nbTriangles];
+  println("nbTriangles: " + nbTriangles);
   
   //Autant de murs qu'on veux
   murs = new Mur[nbMurs];
 
-  //Créer tous les objets
-  //Créer les objets cubes
+  //Create the Cube objects
   for (int i = 0; i < nbCubes; i++) {
    cubes[i] = new Cube(); 
+  }
+  
+  //Create the Sphere objects
+  for (int i = 0; i < nbSpheres; i++) {
+   spheres[i] = new Sphere(); 
+  }
+  
+  //Create the Triangle objects
+  for (int i = 0; i < nbTriangles; i++) {
+   triangles[i] = new Triangle(); 
   }
   
   //Créer les objets murs
@@ -82,7 +161,7 @@ void setup()
   for (int i = 3; i < nbMurs; i+=4) {
    murs[i] = new Mur(width/2, 0, width, 10); 
   }
-  
+ 
   //Fond noir
   background(0);
   
@@ -92,6 +171,9 @@ void setup()
  
 void draw()
 {
+  // Set color mode to HSB to better handle color change
+    colorMode(HSB, 360, 100, 100);
+  
   //Faire avancer la chanson. On draw() pour chaque "frame" de la chanson...
   fft.forward(song.mix);
   
@@ -138,19 +220,45 @@ void draw()
   //Volume pour toutes les fréquences à ce moment, avec les sons plus haut plus importants.
   //Cela permet à l'animation d'aller plus vite pour les sons plus aigus, qu'on remarque plus
   float scoreGlobal = 0.66*scoreLow + 0.8*scoreMid + 1*scoreHi;
-  
-  //Couleur subtile de background
+
+  //Canvas background color
   background(scoreLow/100, scoreMid/100, scoreHi/100);
-   
-  //Cube pour chaque bande de fréquence
+  println("\n");
+  
+  // Cubes for the low frequencies
   for(int i = 0; i < nbCubes; i++)
   {
-    //Valeur de la bande de fréquence
-    float bandValue = fft.getBand(i);
+    // Band of frequence value
+    float bandValue = fft.getBand(i);//amplitude of certain band of frequency
+    //println("band value: " + bandValue); //0-15
     
     //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
     //L'opacité est déterminée par le volume de la bande et le volume global.
     cubes[i].display(scoreLow, scoreMid, scoreHi, bandValue, scoreGlobal);
+  }
+  
+  // Spheres for the mid frequencies
+  for(int i = 0; i < nbSpheres; i++)
+  {
+    // Band of frequence value
+    float bandValue = fft.getBand(i);//amplitude of certain band of frequency
+    //println("band value: " + bandValue); //0-15
+    
+    //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
+    //L'opacité est déterminée par le volume de la bande et le volume global.
+    spheres[i].display(scoreLow, scoreMid, scoreHi, bandValue, scoreGlobal);
+  }
+  
+  // Triangles for the hi frequencies
+  for(int i = 0; i < nbTriangles; i++)
+  {
+    // Band of frequence value
+    float bandValue = fft.getBand(i);//amplitude of certain band of frequency
+    //println("band value: " + bandValue); //0-15
+    
+    //La couleur est représentée ainsi: rouge pour les basses, vert pour les sons moyens et bleu pour les hautes. 
+    //L'opacité est déterminée par le volume de la bande et le volume global.
+    triangles[i].display(scoreLow, scoreMid, scoreHi, bandValue, scoreGlobal);
   }
   
   //Murs lignes, ici il faut garder la valeur de la bande précédent et la suivante pour les connecter ensemble
@@ -159,117 +267,59 @@ void draw()
   //Distance entre chaque point de ligne, négatif car sur la dimension z
   float dist = -25;
   
-  //Multiplier la hauteur par cette constante
-  float heightMult = 2;
+  // Multiplier for diagonal lines (the higher the value, the bigger the arrows at the edges become)
+  // We can use energy or loudness to increse/decrease it
+  
+  // The final value should be between 1 and 8 to be nice.
+  //float heightMult = spotifySongData.get("energy")*8.0;
+  float heightMult = 5;
   
   //Pour chaque bande
   for(int i = 1; i < fft.specSize(); i++)
   {
-    //Valeur de la bande de fréquence, on multiplie les bandes plus loins pour qu'elles soient plus visibles.
+    // The value of the frequency band, the farther bands are multiplied so that they are more visible.
     float bandValue = fft.getBand(i)*(1 + (i/50));
     
-    //Selection de la couleur en fonction des forces des différents types de sons
-    stroke(100+scoreLow, 100+scoreMid, 100+scoreHi, 255-i);
-    strokeWeight(1 + (scoreGlobal/100));
+    // Selection of color based on the sound
+    // stroke(100+scoreLow, 100+scoreMid, 100+scoreHi, 155-i);
+    // change brightness based on intensity
     
-    //ligne inferieure gauche
-    line(0, height-(previousBandValue*heightMult), dist*(i-1), 0, height-(bandValue*heightMult), dist*i);
-    line((previousBandValue*heightMult), height, dist*(i-1), (bandValue*heightMult), height, dist*i);
-    line(0, height-(previousBandValue*heightMult), dist*(i-1), (bandValue*heightMult), height, dist*i);
+    float intensity = fft.getBand(i%((int)(fft.specSize()*specHi)));
     
-    //ligne superieure gauche
+    stroke((1-spotifySongData.get("valence"))*100,100,spotifySongData.get("valence")*100);
+    //strokeWeight(.6 + (scoreGlobal/100 * spotifySongData.get("energy")));
+    strokeWeight(.6 + scoreGlobal/100 * random(spotifySongData.get("energy")-0.1, spotifySongData.get("energy")+0.1));
+    
+    //diagonal line, left, lower
+    line(0, height-(previousBandValue*heightMult), dist*(i-1), 0, height-(bandValue*heightMult), dist*i); // upper
+    line((previousBandValue*heightMult), height, dist*(i-1), (bandValue*heightMult), height, dist*i); // lower
+    line(0, height-(previousBandValue*heightMult), dist*(i-1), (bandValue*heightMult), height, dist*i); // central
+    
+    //diagonal line, left, higher
     line(0, (previousBandValue*heightMult), dist*(i-1), 0, (bandValue*heightMult), dist*i);
     line((previousBandValue*heightMult), 0, dist*(i-1), (bandValue*heightMult), 0, dist*i);
     line(0, (previousBandValue*heightMult), dist*(i-1), (bandValue*heightMult), 0, dist*i);
     
-    //ligne inferieure droite
+    //diagonal line, right, lower
     line(width, height-(previousBandValue*heightMult), dist*(i-1), width, height-(bandValue*heightMult), dist*i);
     line(width-(previousBandValue*heightMult), height, dist*(i-1), width-(bandValue*heightMult), height, dist*i);
     line(width, height-(previousBandValue*heightMult), dist*(i-1), width-(bandValue*heightMult), height, dist*i);
     
-    //ligne superieure droite
+    //diagonal line, left, higher
     line(width, (previousBandValue*heightMult), dist*(i-1), width, (bandValue*heightMult), dist*i);
     line(width-(previousBandValue*heightMult), 0, dist*(i-1), width-(bandValue*heightMult), 0, dist*i);
     line(width, (previousBandValue*heightMult), dist*(i-1), width-(bandValue*heightMult), 0, dist*i);
     
-    //Sauvegarder la valeur pour le prochain tour de boucle
     previousBandValue = bandValue;
   }
   
-  //Murs rectangles
+  //Walls rectangles
   for(int i = 0; i < nbMurs; i++)
   {
-    //On assigne à chaque mur une bande, et on lui envoie sa force.
+    // Each wall is assigned a band, and its amplitude is sent to it.
     float intensity = fft.getBand(i%((int)(fft.specSize()*specHi)));
+    
     murs[i].display(scoreLow, scoreMid, scoreHi, intensity, scoreGlobal);
-  }
-}
-
-//Classe pour les cubes qui flottent dans l'espace
-class Cube {
-  //Position Z de "spawn" et position Z maximale
-  float startingZ = -10000;
-  float maxZ = 1000;
-  
-  //Valeurs de positions
-  float x, y, z;
-  float rotX, rotY, rotZ;
-  float sumRotX, sumRotY, sumRotZ;
-  
-  //Constructeur
-  Cube() {
-    //Faire apparaitre le cube à un endroit aléatoire
-    x = random(0, width);
-    y = random(0, height);
-    z = random(startingZ, maxZ);
-    
-    //Donner au cube une rotation aléatoire
-    rotX = random(0, 1);
-    rotY = random(0, 1);
-    rotZ = random(0, 1);
-  }
-  
-  void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
-    //Sélection de la couleur, opacité déterminée par l'intensité (volume de la bande)
-    color displayColor = color(scoreLow*0.67, scoreMid*0.67, scoreHi*0.67, intensity*5);
-    fill(displayColor, 255);
-    
-    //Couleur lignes, elles disparaissent avec l'intensité individuelle du cube
-    color strokeColor = color(255, 150-(20*intensity));
-    stroke(strokeColor);
-    strokeWeight(1 + (scoreGlobal/300));
-    
-    //Création d'une matrice de transformation pour effectuer des rotations, agrandissements
-    pushMatrix();
-    
-    //Déplacement
-    translate(x, y, z);
-    
-    //Calcul de la rotation en fonction de l'intensité pour le cube
-    sumRotX += intensity*(rotX/1000);
-    sumRotY += intensity*(rotY/1000);
-    sumRotZ += intensity*(rotZ/1000);
-    
-    //Application de la rotation
-    rotateX(sumRotX);
-    rotateY(sumRotY);
-    rotateZ(sumRotZ);
-    
-    //Création de la boite, taille variable en fonction de l'intensité pour le cube
-    box(100+(intensity/2));
-    
-    //Application de la matrice
-    popMatrix();
-    
-    //Déplacement Z
-    z+= (1+(intensity/5)+(pow((scoreGlobal/150), 2)));
-    
-    //Replacer la boite à l'arrière lorsqu'elle n'est plus visible
-    if (z >= maxZ) {
-      x = random(0, width);
-      y = random(0, height);
-      z = startingZ;
-    }
   }
 }
 
@@ -277,7 +327,7 @@ class Cube {
 //Classe pour afficher les lignes sur les cotés
 class Mur {
   //Position minimale et maximale Z
-  float startingZ = -10000;
+  float startingZ = -6000;
   float maxZ = 50;
   
   //Valeurs de position
@@ -297,18 +347,23 @@ class Mur {
     this.sizeY = sizeY;
   }
   
-  //Fonction d'affichage
+  //======= WALL COLORS ==========
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     //Couleur déterminée par les sons bas, moyens et élevé
     //Opacité déterminé par le volume global
     color displayColor = color(scoreLow*0.67, scoreMid*0.67, scoreHi*0.67, scoreGlobal);
+    //color displayColor = color(180, 100, 100, scoreGlobal);
     
-    //Faire disparaitre les lignes au loin pour donner une illusion de brouillard
-    fill(displayColor, ((scoreGlobal-5)/1000)*(255+(z/25)));
+    // Make the lines disappear in the distance to give an illusion of fog
+    // fill(displayColor, ((scoreGlobal-5)/1000)*(255+(z/25)));
+    fill(displayColor);
     noStroke();
     
-    //Première bande, celle qui bouge en fonction de la force
-    //Matrice de transformation
+    // Première bande, celle qui bouge en fonction de la force
+    // Matrice de transformation
+    
+    // https://processing.org/reference/pushMatrix_.html
+    
     pushMatrix();
     
     //Déplacement
@@ -316,7 +371,7 @@ class Mur {
     
     //Agrandissement
     if (intensity > 100) intensity = 100;
-    scale(sizeX*(intensity/100), sizeY*(intensity/100), 20);
+    scale(sizeX*(intensity/100), sizeY*(intensity/100), 5);
     
     //Création de la "boite"
     box(1);
