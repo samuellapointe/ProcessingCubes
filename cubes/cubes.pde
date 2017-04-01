@@ -46,8 +46,18 @@ Mur[] murs;
 FloatDict spotifySongData;
  
 color getEmotionColor(){
-  // we are using HSB color scheme to differentiate between warm (happy, energetic) and cold (sad, calm)
-  // H tells the warmth of the color, lowering S makes it pastel, "relaxed", "calm". By lowering B it becomes darker, "sad"?
+  /* 
+  
+  We are using HSB color scheme to differentiate between warm (happy, energetic) and cold (sad, calm)
+  H tells the warmth of the color, lowering S makes it pastel, "relaxed", "calm". By lowering B it becomes darker, "sad"?
+ 
+  Warm colors: hottest is red (HSB - 0,100,100)
+  values in H between 320 - 65
+  
+  Cold colors: coldest is blue (255,100,100)
+  cold colors are between 75 - 310
+  
+  */
   return 1;
 }
 void setup()
