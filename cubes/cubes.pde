@@ -88,7 +88,7 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("song.mp3");
+  song = minim.loadFile("bob.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
@@ -171,6 +171,9 @@ void setup()
  
 void draw()
 {
+  // Set color mode to HSB to better handle color change
+    colorMode(HSB, 360, 100, 100);
+  
   //Faire avancer la chanson. On draw() pour chaque "frame" de la chanson...
   fft.forward(song.mix);
   
@@ -277,11 +280,14 @@ void draw()
     // The value of the frequency band, the farther bands are multiplied so that they are more visible.
     float bandValue = fft.getBand(i)*(1 + (i/50));
     
-    //Selection de la couleur en fonction des forces des différents types de sons
-    stroke(100+scoreLow, 100+scoreMid, 100+scoreHi, 155-i);
-    strokeWeight(.8 + (scoreGlobal/100));
+    // Selection of color based on the sound
+    // stroke(100+scoreLow, 100+scoreMid, 100+scoreHi, 155-i);
+    // change brightness based on intensity
     
-    //diagonal line, left, lower
+    float intensity = fft.getBand(i%((int)(fft.specSize()*specHi)));
+    
+    stroke((1-spotifySongData.get("valence"))*100,100,100);
+    strokeWeight(.6 + (scoreGlobal/100));
     
     //diagonal line, left, lower
     line(0, height-(previousBandValue*heightMult), dist*(i-1), 0, height-(bandValue*heightMult), dist*i); // upper
@@ -344,7 +350,8 @@ class Mur {
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     //Couleur déterminée par les sons bas, moyens et élevé
     //Opacité déterminé par le volume global
-    color displayColor = color(scoreLow*0.67, scoreMid*0.67, scoreHi*0.67, scoreGlobal);
+    //color displayColor = color(scoreLow*0.67, scoreMid*0.67, scoreHi*0.67, scoreGlobal);
+    color displayColor = color(180, 100, 100, scoreGlobal);
     
     // Make the lines disappear in the distance to give an illusion of fog
     // fill(displayColor, ((scoreGlobal-5)/1000)*(255+(z/25)));
