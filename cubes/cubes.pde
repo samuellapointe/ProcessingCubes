@@ -45,6 +45,10 @@ Mur[] murs;
 
 FloatDict spotifySongData;
  
+color getEmotionColor(){
+  // we are using HSB color scheme to differentiate between warm (happy, energetic) and cold (sad, calm)
+  return 1;
+}
 void setup()
 {
   // Get refreshed token from Spotify
