@@ -76,7 +76,7 @@ void setup()
   spotifySongData = new FloatDict();
   
   // Get several properties: tempo, energy, musicKey, loudness, mode, valence
-  spotifySongData = getSpotifyData("2iSXgduBpKrwJuQcuybkxP");
+  spotifySongData = getSpotifyData("3nSK1M29hY2Jg2CjsJe98h");
   
   // Example on how to get specific data from the dictionary
   // spotifySongData.get("tempo"));
@@ -88,7 +88,7 @@ void setup()
   minim = new Minim(this);
  
   //Load the song (found in data folder) 
-  song = minim.loadFile("bob.mp3");
+  song = minim.loadFile("slipknot.mp3");
   
   //Créer l'objet FFT pour analyser la chanson
   fft = new FFT(song.bufferSize(), song.sampleRate());
@@ -286,8 +286,9 @@ void draw()
     
     float intensity = fft.getBand(i%((int)(fft.specSize()*specHi)));
     
-    stroke((1-spotifySongData.get("valence"))*100,100,100);
-    strokeWeight(.6 + (scoreGlobal/100));
+    stroke((1-spotifySongData.get("valence"))*100,100,spotifySongData.get("valence")*100);
+    //strokeWeight(.6 + (scoreGlobal/100 * spotifySongData.get("energy")));
+    strokeWeight(.6 + scoreGlobal/100 * random(spotifySongData.get("energy")-0.1, spotifySongData.get("energy")+0.1));
     
     //diagonal line, left, lower
     line(0, height-(previousBandValue*heightMult), dist*(i-1), 0, height-(bandValue*heightMult), dist*i); // upper
@@ -350,8 +351,8 @@ class Mur {
   void display(float scoreLow, float scoreMid, float scoreHi, float intensity, float scoreGlobal) {
     //Couleur déterminée par les sons bas, moyens et élevé
     //Opacité déterminé par le volume global
-    //color displayColor = color(scoreLow*0.67, scoreMid*0.67, scoreHi*0.67, scoreGlobal);
-    color displayColor = color(180, 100, 100, scoreGlobal);
+    color displayColor = color(scoreLow*0.67, scoreMid*0.67, scoreHi*0.67, scoreGlobal);
+    //color displayColor = color(180, 100, 100, scoreGlobal);
     
     // Make the lines disappear in the distance to give an illusion of fog
     // fill(displayColor, ((scoreGlobal-5)/1000)*(255+(z/25)));
